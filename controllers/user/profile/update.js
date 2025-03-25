@@ -10,12 +10,10 @@ const {
 } = require("../../../helpers/constant");
 
 // Middleware for handling file uploads
-const uploadMiddleware = upload.fields([
-  { name: "profilePicture", maxCount: 1 },
-]);
+const uploadMiddleware = upload.single("profilePicture");
 
 const update = async (req, res) => {
-  const { logger, userId, body, files, fileValidationError } = req;
+  const { logger, userId, body, file, fileValidationError } = req;
   try {
     const { email } = body;
 
@@ -36,9 +34,7 @@ const update = async (req, res) => {
       });
     }
 
-    body.profilePicture = files?.profilePicture
-      ? files["profilePicture"][0].location
-      : fetchUser?.profilePicture;
+    body.profilePicture = file ? file.path : fetchUser.profilePicture;
 
     const updateData = await User.findByIdAndUpdate(
       { _id: new ObjectId(userId) },

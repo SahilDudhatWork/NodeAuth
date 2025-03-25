@@ -60,7 +60,7 @@ const userCreate = async (req, res) => {
       mobile,
       email,
       password: passwordHash,
-      profilePicture: file ? file.location : null,
+      profilePicture: file ? file.path : null,
     });
 
     // Save user

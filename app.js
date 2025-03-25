@@ -15,6 +15,8 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(logger("dev"));
 
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 // Routers
 app.use("/v1", routes);
 app.get("/", (req, res) => {

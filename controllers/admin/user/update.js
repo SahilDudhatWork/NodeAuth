@@ -9,12 +9,10 @@ const {
 } = require("../../../helpers/constant");
 const upload = require("../../../middlewares/multer");
 
-const uploadMiddlewareB = upload.fields([
-  { name: "profilePicture", maxCount: 1 },
-]);
+const uploadMiddlewareB = upload.single("profilePicture");
 
 const update = async (req, res) => {
-  const { logger, params, body, fileValidationError, files } = req;
+  const { logger, params, body, fileValidationError, file } = req;
   try {
     const { id } = params;
 
@@ -38,9 +36,7 @@ const update = async (req, res) => {
       }
     }
 
-    body.profilePicture = files?.profilePicture
-      ? files["profilePicture"][0].location
-      : fetchUserData?.profilePicture;
+    body.profilePicture = file ? file.path : fetchUser.profilePicture;
 
     const updateData = await User.findByIdAndUpdate(
       { _id: new ObjectId(id) },

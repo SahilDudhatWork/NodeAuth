@@ -1,13 +1,13 @@
-const User = require("../../../models/user");
-const { handleException } = require("../../../helpers/exception");
 const { ObjectId } = require("mongoose").Types;
+const User = require("../../../models/user");
 const Response = require("../../../helpers/response");
+const upload = require("../../../middlewares/multer");
+const { handleException } = require("../../../helpers/exception");
 const {
   STATUS_CODE,
   ERROR_MSGS,
   INFO_MSGS,
 } = require("../../../helpers/constant");
-const upload = require("../../../middlewares/multer");
 
 const uploadMiddlewareB = upload.single("profilePicture");
 
@@ -36,7 +36,7 @@ const update = async (req, res) => {
       }
     }
 
-    body.profilePicture = file ? file.path : fetchUser.profilePicture;
+    body.profilePicture = file ? file.path : fetchUserData.profilePicture;
 
     const updateData = await User.findByIdAndUpdate(
       { _id: new ObjectId(id) },

@@ -1,12 +1,12 @@
+const Jwt = require("jsonwebtoken");
 const Otp = require("../../../models/otp");
 const Response = require("../../../helpers/response");
+const { handleException } = require("../../../helpers/exception");
 const {
   STATUS_CODE,
   ERROR_MSGS,
   INFO_MSGS,
 } = require("../../../helpers/constant");
-const jwt = require("jsonwebtoken");
-const { handleException } = require("../../../helpers/exception");
 
 const verifyOtp = async (req, res) => {
   const { logger, body } = req;
@@ -46,7 +46,7 @@ const verifyOtp = async (req, res) => {
       };
       return Response.error(obj);
     }
-    let token = jwt.sign({ email }, process.env.USER_OTP_TOKEN, {
+    let token = Jwt.sign({ email }, process.env.USER_OTP_TOKEN, {
       expiresIn: process.env.USER_OTP_ACCESS_TIME,
     });
     if (!token) {

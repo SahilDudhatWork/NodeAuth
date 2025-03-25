@@ -1,8 +1,8 @@
-const { validateResetPassword } = require("../../../helpers/joi-validation");
-const { handleException } = require("../../../helpers/exception");
 const Response = require("../../../helpers/response");
-const { encrypt, decrypt } = require("../../../helpers/encrypt-decrypt");
 const { hendleModel } = require("../../../utils/hendleModel");
+const { handleException } = require("../../../helpers/exception");
+const { encrypt, decrypt } = require("../../../helpers/encrypt-decrypt");
+const { validateResetPassword } = require("../../../helpers/joi-validation");
 const {
   STATUS_CODE,
   ERROR_MSGS,
@@ -76,7 +76,7 @@ const resetPassword = async (req, res) => {
       msg: INFO_MSGS.PASSWORD_CHANGED,
     });
   } catch (error) {
-    console.log("resetPassword Error:", error);
+    console.log("Error:", error);
     return handleException(logger, res, error);
   }
 };

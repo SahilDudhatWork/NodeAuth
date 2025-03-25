@@ -1,11 +1,11 @@
 const Cms = require("../../../models/cms");
 const Response = require("../../../helpers/response");
+const { handleException } = require("../../../helpers/exception");
 const {
   STATUS_CODE,
   ERROR_MSGS,
   INFO_MSGS,
 } = require("../../../helpers/constant");
-const { handleException } = require("../../../helpers/exception");
 
 const remove = async (req, res) => {
   const { logger, params } = req;

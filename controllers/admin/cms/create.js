@@ -1,6 +1,6 @@
 const Cms = require("../../../models/cms");
-const { handleException } = require("../../../helpers/exception");
 const Response = require("../../../helpers/response");
+const { handleException } = require("../../../helpers/exception");
 const {
   STATUS_CODE,
   ERROR_MSGS,

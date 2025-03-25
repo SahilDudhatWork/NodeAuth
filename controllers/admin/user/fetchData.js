@@ -1,6 +1,6 @@
 const User = require("../../../models/user");
-const { handleException } = require("../../../helpers/exception");
 const Response = require("../../../helpers/response");
+const { handleException } = require("../../../helpers/exception");
 const { paginationResponse } = require("../../../utils/paginationFormate");
 const {
   STATUS_CODE,

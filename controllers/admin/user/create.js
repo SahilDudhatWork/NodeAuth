@@ -1,10 +1,10 @@
+const Jwt = require("jsonwebtoken");
 const User = require("../../../models/user");
-const { handleException } = require("../../../helpers/exception");
-const { encrypt } = require("../../../helpers/encrypt-decrypt");
-const Response = require("../../../helpers/response");
-const jwt = require("jsonwebtoken");
-const { signUpSchemaValidate } = require("../../../helpers/joi-validation");
 const upload = require("../../../middlewares/multer");
+const Response = require("../../../helpers/response");
+const { encrypt } = require("../../../helpers/encrypt-decrypt");
+const { handleException } = require("../../../helpers/exception");
+const { signUpSchemaValidate } = require("../../../helpers/joi-validation");
 const {
   STATUS_CODE,
   ERROR_MSGS,
@@ -110,7 +110,7 @@ const userCreate = async (req, res) => {
 // Generate JWT Token
 const commonAuth = async (encryptUser, expiresIn, secret, type) => {
   try {
-    return jwt.sign({ userId: encryptUser, type, role: "User" }, secret, {
+    return Jwt.sign({ userId: encryptUser, type, role: "User" }, secret, {
       expiresIn,
     });
   } catch (error) {

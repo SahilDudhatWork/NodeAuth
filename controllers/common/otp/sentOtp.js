@@ -1,13 +1,13 @@
 const Otp = require("../../../models/otp");
 const Response = require("../../../helpers/response");
+const { hendleModel } = require("../../../utils/hendleModel");
+const { handleException } = require("../../../helpers/exception");
+const { VerificationEmail } = require("../../../utils/nodemailer");
 const {
   STATUS_CODE,
   ERROR_MSGS,
   INFO_MSGS,
 } = require("../../../helpers/constant");
-const { handleException } = require("../../../helpers/exception");
-const { VerificationEmail } = require("../../../utils/nodemailer");
-const { hendleModel } = require("../../../utils/hendleModel");
 
 const sentOtp = async (req, res) => {
   const { logger, params, body } = req;

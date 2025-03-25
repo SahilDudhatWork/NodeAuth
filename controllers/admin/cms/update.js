@@ -1,6 +1,6 @@
 const Cms = require("../../../models/cms");
-const { handleException } = require("../../../helpers/exception");
 const Response = require("../../../helpers/response");
+const { handleException } = require("../../../helpers/exception");
 const {
   STATUS_CODE,
   ERROR_MSGS,
@@ -21,6 +21,7 @@ const update = async (req, res) => {
   try {
     const { id } = params;
     body.slug = convertToSlug(body.title);
+
     const existingRecord = await Cms.findOne({ slug: body.slug });
     if (existingRecord && existingRecord._id.toString() !== id) {
       return Response.error({

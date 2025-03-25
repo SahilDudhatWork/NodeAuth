@@ -1,7 +1,7 @@
-const Cms = require("../../../models/cms");
-const { handleException } = require("../../../helpers/exception");
-const Response = require("../../../helpers/response");
 const { ObjectId } = require("mongoose").Types;
+const Cms = require("../../../models/cms");
+const Response = require("../../../helpers/response");
+const { handleException } = require("../../../helpers/exception");
 const {
   STATUS_CODE,
   ERROR_MSGS,
@@ -13,7 +13,7 @@ const getDetails = async (req, res) => {
   try {
     const { id } = params;
 
-    let getData = await Cms.aggregate([
+    let [getData] = await Cms.aggregate([
       {
         $match: {
           _id: new ObjectId(id),
@@ -25,8 +25,6 @@ const getDetails = async (req, res) => {
         },
       },
     ]);
-
-    getData = getData[0];
 
     const statusCode = getData ? STATUS_CODE.OK : STATUS_CODE.OK;
     const message = getData ? INFO_MSGS.SUCCESS : ERROR_MSGS.DATA_NOT_FOUND;

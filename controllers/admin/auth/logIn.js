@@ -1,14 +1,14 @@
+const Jwt = require("jsonwebtoken");
 const Admin = require("../../../models/admin");
-const jwt = require("jsonwebtoken");
-const { encrypt, decrypt } = require("../../../helpers/encrypt-decrypt");
 const Response = require("../../../helpers/response");
+const { encrypt, decrypt } = require("../../../helpers/encrypt-decrypt");
+const LoginValidation = require("../../../helpers/joi-validation");
+const { handleException } = require("../../../helpers/exception");
 const {
   STATUS_CODE,
   ERROR_MSGS,
   INFO_MSGS,
 } = require("../../../helpers/constant");
-const { handleException } = require("../../../helpers/exception");
-const LoginValidation = require("../../../helpers/joi-validation");
 require("dotenv").config();
 
 /**
@@ -97,7 +97,7 @@ const logIn = async (req, res) => {
   }
 };
 
-// Common Auth function for 2FA checking and JWT token generation
+// Common Auth function for 2FA checking and Jwt token generation
 const commonAuth = async (encryptAdmin, ACCESS_TIME, ACCESS_TOKEN, type) => {
   try {
     const payload = {
@@ -115,11 +115,11 @@ const commonAuth = async (encryptAdmin, ACCESS_TIME, ACCESS_TOKEN, type) => {
   }
 };
 
-// Generate JWT Token
+// Generate Jwt Token
 const generateJWTToken = async (payload) => {
   try {
     const { encryptAdmin, expiresIn, accessToken, type, role } = payload;
-    const token = jwt.sign({ adminId: encryptAdmin, type, role }, accessToken, {
+    const token = Jwt.sign({ adminId: encryptAdmin, type, role }, accessToken, {
       expiresIn,
     });
     return token;

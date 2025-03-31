@@ -13,11 +13,11 @@ const resetPassword = async (req, res) => {
   const { logger, params, body } = req;
 
   try {
-    const { oldPassword, newPassword } = body;
+    const { newPassword } = body;
     const { email } = req;
     const { type } = params;
 
-    if (!oldPassword || !newPassword) {
+    if (!newPassword) {
       return Response.error({
         res,
         status: STATUS_CODE.BAD_REQUEST,
@@ -45,17 +45,17 @@ const resetPassword = async (req, res) => {
       });
     }
 
-    const decryptedOldPassword = decrypt(
-      user.password,
-      process.env.PASSWORD_ENCRYPTION_KEY
-    );
-    if (decryptedOldPassword !== oldPassword) {
-      return Response.error({
-        res,
-        status: STATUS_CODE.BAD_REQUEST,
-        msg: ERROR_MSGS.OLD_PASSWORD_INCORRECT,
-      });
-    }
+    // const decryptedOldPassword = decrypt(
+    //   user.password,
+    //   process.env.PASSWORD_ENCRYPTION_KEY
+    // );
+    // if (decryptedOldPassword !== oldPassword) {
+    //   return Response.error({
+    //     res,
+    //     status: STATUS_CODE.BAD_REQUEST,
+    //     msg: ERROR_MSGS.OLD_PASSWORD_INCORRECT,
+    //   });
+    // }
 
     const encryptedNewPassword = encrypt(
       newPassword,

@@ -87,7 +87,7 @@ module.exports = {
       "The carrier reference has already been used. Please provide a unique reference.",
     CARRIER_REFERENCE_LIMIT:
       "The carrier reference must be exactly 10 characters long.",
-    INVALID_PASSWORD: "Please provide both old and new passwords..",
+    INVALID_PASSWORD: "Please provide new passwords.",
   },
 
   INFO_MSGS: {

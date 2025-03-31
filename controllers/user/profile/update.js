@@ -34,7 +34,7 @@ const update = async (req, res) => {
       });
     }
 
-    body.profilePicture = file ? file.path : fetchUser.profilePicture;
+    // body.profilePicture = file ? file.path : fetchUser.profilePicture;
 
     const updateData = await User.findByIdAndUpdate(
       { _id: new ObjectId(userId) },

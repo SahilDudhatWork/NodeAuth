@@ -49,6 +49,11 @@ const collectionSchema = new Schema(
       type: Date,
       default: null,
     },
+    loginType: {
+      type: String,
+      default: "Web",
+      enum: ["Apple", "Google", "Web"],
+    },
   },
   {
     timestamps: true,

@@ -17,28 +17,13 @@ const uploadMiddleware = upload.single("profilePicture");
 const signUp = async (req, res) => {
   const { logger, body, file, fileValidationError } = req;
   try {
-    const { fullName, mobile, email, password } = body;
+    const { fullName, mobile, email, password, loginType } = body;
 
-    const { error } = signUpSchemaValidate({
-      fullName,
-      mobile,
-      email,
-      password,
-    });
-
-    if (error) {
+    if (!loginType) {
       return Response.error({
         res,
         status: STATUS_CODE.BAD_REQUEST,
-        msg: error.details[0].message,
-      });
-    }
-
-    if (fileValidationError) {
-      return Response.error({
-        res,
-        status: STATUS_CODE.BAD_REQUEST,
-        msg: fileValidationError,
+        msg: `Login Type ${ERROR_MSGS.KEY_REQUIRED}`,
       });
     }
 
@@ -52,49 +37,50 @@ const signUp = async (req, res) => {
       });
     }
 
-    const passwordHash = encrypt(password, process.env.PASSWORD_ENCRYPTION_KEY);
+    if (loginType === "Web") {
+      const { error } = signUpSchemaValidate({
+        fullName,
+        mobile,
+        email,
+        password,
+      });
+      if (error) {
+        return Response.error({
+          res,
+          status: STATUS_CODE.BAD_REQUEST,
+          msg: error.details[0].message,
+        });
+      }
 
-    // Prepare user data
+      if (fileValidationError) {
+        return Response.error({
+          res,
+          status: STATUS_CODE.BAD_REQUEST,
+          msg: fileValidationError,
+        });
+      }
+    }
+
+    const passwordHash =
+      loginType === "Web"
+        ? encrypt(password, process.env.PASSWORD_ENCRYPTION_KEY)
+        : null;
+
+    // Create and save new user
     const newUser = new User({
       fullName,
       mobile,
       email,
+      loginType,
       password: passwordHash,
       profilePicture: file ? file.path : null,
     });
 
-    // Save user
     const saveData = await newUser.save();
 
-    // Generate JWT tokens
-    const encryptUser = encrypt(saveData._id, process.env.USER_ENCRYPTION_KEY);
-    const accessToken = await commonAuth(
-      encryptUser,
-      process.env.USER_ACCESS_TIME,
-      process.env.USER_ACCESS_TOKEN,
-      "Access"
-    );
-    const refreshToken = await commonAuth(
-      encryptUser,
-      process.env.REFRESH_TOKEN_TIME,
-      process.env.REFRESH_ACCESS_TOKEN,
-      "Refresh"
-    );
-
-    // Update user with token details
-    await User.findByIdAndUpdate(
-      saveData._id,
-      {
-        lastLogin: new Date(),
-        token: {
-          accessToken,
-          refreshToken,
-          type: "Access",
-          createdAt: new Date(),
-        },
-      },
-      { new: true }
-    );
+    // Generate JWT tokens and update user
+    const { accessToken, refreshToken } = await generateTokens(saveData._id);
+    await updateUserToken(saveData._id, accessToken, refreshToken);
 
     return Response.success({
       res,
@@ -109,15 +95,37 @@ const signUp = async (req, res) => {
 };
 
 // Generate JWT Token
-const commonAuth = async (encryptUser, expiresIn, secret, type) => {
-  try {
-    return jwt.sign({ userId: encryptUser, type, role: "User" }, secret, {
-      expiresIn,
-    });
-  } catch (error) {
-    console.error("commonAuth Error:", error);
-    throw error;
-  }
+const generateTokens = async (userId) => {
+  const encryptUser = encrypt(userId, process.env.USER_ENCRYPTION_KEY);
+  const accessToken = jwt.sign(
+    { userId: encryptUser, type: "Access", role: "User" },
+    process.env.USER_ACCESS_TOKEN,
+    { expiresIn: process.env.USER_ACCESS_TIME }
+  );
+  const refreshToken = jwt.sign(
+    { userId: encryptUser, type: "Refresh", role: "User" },
+    process.env.REFRESH_ACCESS_TOKEN,
+    { expiresIn: process.env.REFRESH_TOKEN_TIME }
+  );
+
+  return { accessToken, refreshToken };
+};
+
+// Update User Token
+const updateUserToken = async (userId, accessToken, refreshToken) => {
+  await User.findByIdAndUpdate(
+    userId,
+    {
+      lastLogin: new Date(),
+      token: {
+        accessToken,
+        refreshToken,
+        type: "Access",
+        createdAt: new Date(),
+      },
+    },
+    { new: true }
+  );
 };
 
 module.exports = {

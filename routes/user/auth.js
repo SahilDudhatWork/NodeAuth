@@ -11,7 +11,7 @@ const {
 const router = Router();
 
 router.post("/signUp", uploadMiddleware, validateEmailAndPassword, signUp);
-router.post("/logIn", validateEmailAndPassword, logIn);
+router.post("/logIn",  logIn);
 
 router.use(userAuth);
 

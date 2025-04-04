@@ -16,29 +16,52 @@ const logIn = async (req, res) => {
   try {
     const { email, password } = body;
 
-    let userInfo = await User.aggregate([{ $match: { email: email } }]);
-    userInfo = userInfo[0];
+    if (!email) {
+      return Response.error({
+        res,
+        status: STATUS_CODE.BAD_REQUEST,
+        msg: `Email ${ERROR_MSGS.KEY_REQUIRED}`,
+      });
+    }
+
+    let [userInfo] = await User.aggregate([{ $match: { email } }]);
     if (!userInfo) {
-      let obj = {
+      return Response.error({
         res,
         status: STATUS_CODE.BAD_REQUEST,
         msg: ERROR_MSGS.ACCOUNT_NOT_FOUND,
-      };
-      return Response.error(obj);
+      });
     }
 
-    const decryptPassword = decrypt(
-      userInfo.password,
-      process.env.PASSWORD_ENCRYPTION_KEY
-    );
+    if (userInfo.loginType === "Web") {
+      if (!password) {
+        return Response.error({
+          res,
+          status: STATUS_CODE.BAD_REQUEST,
+          msg: `Password ${ERROR_MSGS.KEY_REQUIRED}`,
+        });
+      }
 
-    if (password !== decryptPassword) {
-      let obj = {
-        res,
-        status: STATUS_CODE.BAD_REQUEST,
-        msg: ERROR_MSGS.INVALID_LOGIN,
-      };
-      return Response.error(obj);
+      const decryptPassword = decrypt(
+        userInfo.password,
+        process.env.PASSWORD_ENCRYPTION_KEY
+      );
+
+      if (password !== decryptPassword) {
+        return Response.error({
+          res,
+          status: STATUS_CODE.BAD_REQUEST,
+          msg: ERROR_MSGS.INVALID_LOGIN,
+        });
+      }
+    } else {
+      if (password) {
+        return Response.error({
+          res,
+          status: STATUS_CODE.BAD_REQUEST,
+          msg: `You can only log in with ${userInfo.loginType}, not email and password.`,
+        });
+      }
     }
 
     const encryptUser = encrypt(userInfo._id, process.env.USER_ENCRYPTION_KEY);
@@ -55,7 +78,6 @@ const logIn = async (req, res) => {
       "Refresh"
     );
 
-    // Update user with token details
     await User.findByIdAndUpdate(
       userInfo._id,
       {
@@ -69,14 +91,12 @@ const logIn = async (req, res) => {
       },
       { new: true }
     );
+
     return Response.success({
       res,
       status: STATUS_CODE.CREATED,
       msg: INFO_MSGS.SUCCESSFUL_LOGIN,
-      data:{
-        accessToken,
-        refreshToken
-      }
+      data: { accessToken, refreshToken },
     });
   } catch (error) {
     console.log("Login Error : ", error);

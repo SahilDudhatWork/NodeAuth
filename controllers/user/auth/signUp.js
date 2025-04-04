@@ -30,64 +30,71 @@ const signUp = async (req, res) => {
     // Check if email already exists
     const userEmailExist = await User.findOne({ email });
     if (userEmailExist) {
-      return Response.error({
-        res,
-        status: STATUS_CODE.BAD_REQUEST,
-        msg: ERROR_MSGS.ACCOUNT_EXISTS,
-      });
-    }
+      // Generate JWT tokens and update user
+      const { accessToken, refreshToken } = await generateTokens(
+        userEmailExist._id
+      );
+      await updateUserToken(userEmailExist._id, accessToken, refreshToken);
 
-    if (loginType === "Web") {
-      const { error } = signUpSchemaValidate({
+      return Response.success({
+        res,
+        status: STATUS_CODE.CREATED,
+        msg: INFO_MSGS.SUCCESSFUL_LOGIN,
+        data: { accessToken, refreshToken },
+      });
+    } else {
+      if (loginType === "Web") {
+        const { error } = signUpSchemaValidate({
+          fullName,
+          mobile,
+          email,
+          password,
+        });
+        if (error) {
+          return Response.error({
+            res,
+            status: STATUS_CODE.BAD_REQUEST,
+            msg: error.details[0].message,
+          });
+        }
+
+        if (fileValidationError) {
+          return Response.error({
+            res,
+            status: STATUS_CODE.BAD_REQUEST,
+            msg: fileValidationError,
+          });
+        }
+      }
+
+      const passwordHash =
+        loginType === "Web"
+          ? encrypt(password, process.env.PASSWORD_ENCRYPTION_KEY)
+          : null;
+
+      // Create and save new user
+      const newUser = new User({
         fullName,
         mobile,
         email,
-        password,
+        loginType,
+        password: passwordHash,
+        profilePicture: file ? file.path : null,
       });
-      if (error) {
-        return Response.error({
-          res,
-          status: STATUS_CODE.BAD_REQUEST,
-          msg: error.details[0].message,
-        });
-      }
 
-      if (fileValidationError) {
-        return Response.error({
-          res,
-          status: STATUS_CODE.BAD_REQUEST,
-          msg: fileValidationError,
-        });
-      }
+      const saveData = await newUser.save();
+
+      // Generate JWT tokens and update user
+      const { accessToken, refreshToken } = await generateTokens(saveData._id);
+      await updateUserToken(saveData._id, accessToken, refreshToken);
+
+      return Response.success({
+        res,
+        status: STATUS_CODE.CREATED,
+        msg: INFO_MSGS.SUCCESSFUL_REGISTER,
+        data: { accessToken, refreshToken },
+      });
     }
-
-    const passwordHash =
-      loginType === "Web"
-        ? encrypt(password, process.env.PASSWORD_ENCRYPTION_KEY)
-        : null;
-
-    // Create and save new user
-    const newUser = new User({
-      fullName,
-      mobile,
-      email,
-      loginType,
-      password: passwordHash,
-      profilePicture: file ? file.path : null,
-    });
-
-    const saveData = await newUser.save();
-
-    // Generate JWT tokens and update user
-    const { accessToken, refreshToken } = await generateTokens(saveData._id);
-    await updateUserToken(saveData._id, accessToken, refreshToken);
-
-    return Response.success({
-      res,
-      status: STATUS_CODE.CREATED,
-      msg: INFO_MSGS.SUCCESSFUL_REGISTER,
-      data: { accessToken, refreshToken },
-    });
   } catch (error) {
     console.error("Signup Error:", error);
     return handleException(logger, res, error);

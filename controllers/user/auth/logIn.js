@@ -14,8 +14,15 @@ require("dotenv").config();
 const logIn = async (req, res) => {
   const { logger, body } = req;
   try {
-    const { email, password } = body;
+    const { email, password, loginType } = body;
 
+    if (!loginType) {
+      return Response.error({
+        res,
+        status: STATUS_CODE.BAD_REQUEST,
+        msg: `Login Type ${ERROR_MSGS.KEY_REQUIRED}`,
+      });
+    }
     if (!email) {
       return Response.error({
         res,
@@ -24,13 +31,20 @@ const logIn = async (req, res) => {
       });
     }
 
-    let [userInfo] = await User.aggregate([{ $match: { email } }]);
+    let userInfo;
+    userInfo = await User.findOne({ email });
     if (!userInfo) {
-      return Response.error({
-        res,
-        status: STATUS_CODE.BAD_REQUEST,
-        msg: ERROR_MSGS.ACCOUNT_NOT_FOUND,
-      });
+      if (loginType !== "Web") {
+        // Create and save new user
+        const newUser = new User(body);
+        userInfo = await newUser.save();
+      } else {
+        return Response.error({
+          res,
+          status: STATUS_CODE.BAD_REQUEST,
+          msg: ERROR_MSGS.ACCOUNT_NOT_FOUND,
+        });
+      }
     }
 
     if (userInfo.loginType === "Web") {

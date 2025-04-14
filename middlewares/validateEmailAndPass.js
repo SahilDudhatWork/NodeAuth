@@ -1,24 +1,27 @@
-// middlewares/commonSignup.js
-
 const { emailAndPasswordVerification } = require("../helpers/joi-validation");
 const Response = require("../helpers/response");
 const { STATUS_CODE, ERROR_MSGS } = require("../helpers/constant");
 
 const validateEmailAndPassword = async (req, res, next) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    const message = !email
-      ? `Email ${ERROR_MSGS.KEY_REQUIRED}`
-      : `Password ${ERROR_MSGS.KEY_REQUIRED}`;
-    let obj = {
+  const { email, password, loginType } = req.body;
+
+  if (!email) {
+    return Response.error({
       res,
       status: STATUS_CODE.BAD_REQUEST,
-      msg: message,
-    };
-    return Response.error(obj);
+      msg: `Email ${ERROR_MSGS.KEY_REQUIRED}`,
+    });
   }
 
-  // Validate email and password
+  if (loginType === "Web" && !password) {
+    return Response.error({
+      res,
+      status: STATUS_CODE.BAD_REQUEST,
+      msg: `Password ${ERROR_MSGS.KEY_REQUIRED}`,
+    });
+  }
+
+  // Validate email and password if password is provided
   const { error } = emailAndPasswordVerification({ email, password });
   if (error) {
     return Response.error({

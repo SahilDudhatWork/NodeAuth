@@ -14,7 +14,7 @@ require("dotenv").config();
 const logIn = async (req, res) => {
   const { logger, body } = req;
   try {
-    const { email, password, loginType } = body;
+    const { email, password, loginType, appleId } = body;
 
     if (!loginType) {
       return Response.error({
@@ -23,27 +23,47 @@ const logIn = async (req, res) => {
         msg: `Login Type ${ERROR_MSGS.KEY_REQUIRED}`,
       });
     }
-    if (!email) {
-      return Response.error({
-        res,
-        status: STATUS_CODE.BAD_REQUEST,
-        msg: `Email ${ERROR_MSGS.KEY_REQUIRED}`,
-      });
-    }
 
     let userInfo;
-    userInfo = await User.findOne({ email });
-    if (!userInfo) {
-      if (loginType !== "Web") {
-        // Create and save new user
-        const newUser = new User(body);
-        userInfo = await newUser.save();
-      } else {
+
+    if (loginType === "Apple") {
+      if (!appleId) {
         return Response.error({
           res,
           status: STATUS_CODE.BAD_REQUEST,
-          msg: ERROR_MSGS.ACCOUNT_NOT_FOUND,
+          msg: `Apple ID ${ERROR_MSGS.KEY_REQUIRED}`,
         });
+      }
+
+      userInfo = await User.findOne({ appleId });
+
+      if (!userInfo) {
+        // only create if not exists
+        const newUser = new User({ ...body, email: null });
+        userInfo = await newUser.save();
+      }
+    } else {
+      if (!email) {
+        return Response.error({
+          res,
+          status: STATUS_CODE.BAD_REQUEST,
+          msg: `Email ${ERROR_MSGS.KEY_REQUIRED}`,
+        });
+      }
+
+      userInfo = await User.findOne({ email });
+
+      if (!userInfo) {
+        if (loginType !== "Web") {
+          const newUser = new User(body);
+          userInfo = await newUser.save();
+        } else {
+          return Response.error({
+            res,
+            status: STATUS_CODE.BAD_REQUEST,
+            msg: ERROR_MSGS.ACCOUNT_NOT_FOUND,
+          });
+        }
       }
     }
 

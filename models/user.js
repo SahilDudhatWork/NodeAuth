@@ -54,6 +54,10 @@ const collectionSchema = new Schema(
       default: "Web",
       enum: ["Apple", "Google", "Web"],
     },
+    appleId:{
+      type: String,
+      default: null,
+    }
   },
   {
     timestamps: true,

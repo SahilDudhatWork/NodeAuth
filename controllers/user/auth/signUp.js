@@ -17,7 +17,7 @@ const uploadMiddleware = upload.single("profilePicture");
 const signUp = async (req, res) => {
   const { logger, body, file, fileValidationError } = req;
   try {
-    const { fullName, mobile, email, password, loginType } = body;
+    const { fullName, mobile, email, password, loginType, appleId } = body;
 
     if (!loginType) {
       return Response.error({
@@ -27,14 +27,25 @@ const signUp = async (req, res) => {
       });
     }
 
-    // Check if email already exists
-    const userEmailExist = await User.findOne({ email });
-    if (userEmailExist) {
-      // Generate JWT tokens and update user
-      const { accessToken, refreshToken } = await generateTokens(
-        userEmailExist._id
-      );
-      await updateUserToken(userEmailExist._id, accessToken, refreshToken);
+    let query = {};
+    if (loginType === "Apple") {
+      if (!appleId) {
+        return Response.error({
+          res,
+          status: STATUS_CODE.BAD_REQUEST,
+          msg: `Apple ID ${ERROR_MSGS.KEY_REQUIRED}`,
+        });
+      }
+      query.appleId = appleId;
+    } else {
+      query.email = email;
+    }
+
+    // Check if user already exists
+    const userExist = await User.findOne(query);
+    if (userExist) {
+      const { accessToken, refreshToken } = await generateTokens(userExist._id);
+      await updateUserToken(userExist._id, accessToken, refreshToken);
 
       return Response.success({
         res,
@@ -43,6 +54,7 @@ const signUp = async (req, res) => {
         data: { accessToken, refreshToken },
       });
     } else {
+      
       if (loginType === "Web") {
         const { error } = signUpSchemaValidate({
           fullName,
@@ -72,11 +84,11 @@ const signUp = async (req, res) => {
           ? encrypt(password, process.env.PASSWORD_ENCRYPTION_KEY)
           : null;
 
-      // Create and save new user
       const newUser = new User({
         fullName,
         mobile,
-        email,
+        email: loginType === "Apple" ? null : email,
+        appleId: loginType === "Apple" ? appleId : null,
         loginType,
         password: passwordHash,
         profilePicture: file ? file.path : null,
@@ -84,7 +96,6 @@ const signUp = async (req, res) => {
 
       const saveData = await newUser.save();
 
-      // Generate JWT tokens and update user
       const { accessToken, refreshToken } = await generateTokens(saveData._id);
       await updateUserToken(saveData._id, accessToken, refreshToken);
 

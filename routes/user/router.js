@@ -10,8 +10,8 @@ router.get("/", (req, res) => {
 });
 
 router.use("/auth", authRoute);
+router.use("/cms", cmsRoute);
 router.use(userAuth);
 router.use("/profile", profileRoute);
-router.use("/cms", cmsRoute);
 
 module.exports = router;

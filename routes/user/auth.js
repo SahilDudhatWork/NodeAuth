@@ -10,8 +10,8 @@ const {
 } = require("../../middlewares/validateEmailAndPass");
 const router = Router();
 
-router.post("/signUp", uploadMiddleware, validateEmailAndPassword, signUp);
-router.post("/logIn",  logIn);
+router.post("/signUp", uploadMiddleware, signUp);
+router.post("/logIn", logIn);
 
 router.use(userAuth);
 

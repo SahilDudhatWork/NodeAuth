@@ -17,6 +17,7 @@ const collectionSchema = new Schema(
     email: {
       type: String,
       lowercase: true,
+      sparse: true,
       default: null,
     },
     password: {
@@ -56,6 +57,7 @@ const collectionSchema = new Schema(
     appleId: {
       type: String,
       default: null,
+      sparse: true,
     },
   },
   {

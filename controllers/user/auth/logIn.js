@@ -13,6 +13,7 @@ require("dotenv").config();
 // Login
 const logIn = async (req, res) => {
   const { logger, body } = req;
+
   try {
     const { email, password, loginType, appleId } = body;
 
@@ -26,7 +27,7 @@ const logIn = async (req, res) => {
 
     let userInfo;
 
-    if (loginType == "Apple") {
+    if (loginType === "Apple") {
       if (!appleId) {
         return Response.error({
           res,
@@ -38,11 +39,18 @@ const logIn = async (req, res) => {
       userInfo = await User.findOne({ appleId });
 
       if (!userInfo) {
-        // only create if not exists
-        const newUser = new User({ ...body });
+        // Only include safe fields for Apple login
+        const newUserData = {
+          appleId,
+          loginType,
+          ...(email ? { email } : {}), // only include email if it's present
+        };
+
+        const newUser = new User(newUserData);
         userInfo = await newUser.save();
       }
     } else {
+      // Non-Apple login
       if (!email) {
         return Response.error({
           res,
@@ -55,7 +63,12 @@ const logIn = async (req, res) => {
 
       if (!userInfo) {
         if (loginType !== "Web") {
-          const newUser = new User(body);
+          const newUser = new User({
+            email,
+            loginType,
+            ...(password ? { password } : {}),
+          });
+
           userInfo = await newUser.save();
         } else {
           return Response.error({
@@ -76,12 +89,12 @@ const logIn = async (req, res) => {
         });
       }
 
-      const decryptPassword = decrypt(
+      const decryptedPassword = decrypt(
         userInfo.password,
         process.env.PASSWORD_ENCRYPTION_KEY
       );
 
-      if (password !== decryptPassword) {
+      if (password !== decryptedPassword) {
         return Response.error({
           res,
           status: STATUS_CODE.BAD_REQUEST,
@@ -98,15 +111,20 @@ const logIn = async (req, res) => {
       }
     }
 
-    const encryptUser = encrypt(userInfo._id, process.env.USER_ENCRYPTION_KEY);
+    const encryptedUserId = encrypt(
+      userInfo._id,
+      process.env.USER_ENCRYPTION_KEY
+    );
+
     const accessToken = await commonAuth(
-      encryptUser,
+      encryptedUserId,
       process.env.USER_ACCESS_TIME,
       process.env.USER_ACCESS_TOKEN,
       "Access"
     );
+
     const refreshToken = await commonAuth(
-      encryptUser,
+      encryptedUserId,
       process.env.REFRESH_TOKEN_TIME,
       process.env.REFRESH_ACCESS_TOKEN,
       "Refresh"
@@ -133,7 +151,7 @@ const logIn = async (req, res) => {
       data: { accessToken, refreshToken },
     });
   } catch (error) {
-    console.log("Login Error : ", error);
+    console.log("Login Error: ", error);
     return handleException(logger, res, error);
   }
 };

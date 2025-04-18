@@ -39,7 +39,7 @@ const logIn = async (req, res) => {
 
       if (!userInfo) {
         // only create if not exists
-        const newUser = new User({ ...body, email: null });
+        const newUser = new User({ ...body });
         userInfo = await newUser.save();
       }
     } else {

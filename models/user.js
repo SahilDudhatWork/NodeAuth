@@ -18,7 +18,6 @@ const collectionSchema = new Schema(
       type: String,
       lowercase: true,
       default: null,
-      unique: true,
     },
     password: {
       type: String,
@@ -54,10 +53,10 @@ const collectionSchema = new Schema(
       default: "Web",
       enum: ["Apple", "Google", "Web"],
     },
-    appleId:{
+    appleId: {
       type: String,
       default: null,
-    }
+    },
   },
   {
     timestamps: true,

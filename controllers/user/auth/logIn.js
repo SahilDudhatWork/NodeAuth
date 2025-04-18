@@ -26,7 +26,7 @@ const logIn = async (req, res) => {
 
     let userInfo;
 
-    if (loginType === "Apple") {
+    if (loginType == "Apple") {
       if (!appleId) {
         return Response.error({
           res,

@@ -54,8 +54,7 @@ const signUp = async (req, res) => {
         data: { accessToken, refreshToken },
       });
     } else {
-      
-      if (loginType === "Web") {
+      if (loginType == "Web") {
         const { error } = signUpSchemaValidate({
           fullName,
           mobile,

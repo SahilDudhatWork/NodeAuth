@@ -15,7 +15,7 @@ const logIn = async (req, res) => {
   const { logger, body } = req;
 
   try {
-    const { email, password, loginType, appleId } = body;
+    const { email = "", password, loginType, appleId } = body;
 
     if (!loginType) {
       return Response.error({

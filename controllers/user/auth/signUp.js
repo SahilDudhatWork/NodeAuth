@@ -19,7 +19,7 @@ const signUp = async (req, res) => {
 
   try {
     console.log("body", body);
-    const { fullName, mobile, email, password, loginType, appleId } = body;
+    const { fullName, mobile, email = "", password, loginType, appleId } = body;
 
     if (!loginType) {
       return Response.error({

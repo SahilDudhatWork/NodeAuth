@@ -52,7 +52,7 @@ const signUp = async (req, res) => {
 
     // Check if user exists
     const existingUser = await User.findOne(query);
-
+    console.log("existingUser", existingUser);
     if (existingUser) {
       const { accessToken, refreshToken } = await generateTokens(
         existingUser._id

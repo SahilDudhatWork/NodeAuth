@@ -18,6 +18,7 @@ const signUp = async (req, res) => {
   const { logger, body, file, fileValidationError } = req;
 
   try {
+    console.log("body", body);
     const { fullName, mobile, email, password, loginType, appleId } = body;
 
     if (!loginType) {
